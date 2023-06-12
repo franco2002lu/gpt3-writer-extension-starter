@@ -1,6 +1,6 @@
 {
-  "name": "GPT-3 Writer",
-  "description": "highlight your blog post title, we'll generate the rest",
+  "name": "CodeTracer",
+  "description": "highlight your code, we will do the explaining.",
   "version": "1.0",
   "manifest_version": 3,
   "icons": {
@@ -11,10 +11,20 @@
   },
   "action": {
     "default_popup": "index.html",
-    "default_title": "Generate blog post"
+    "default_title": "Generate description"
   },
   "background": {
     "service_worker": "scripts/contextMenuServiceWorker.js"
   },
-  "permissions": ["contextMenus", "tabs", "storage"]
+  "permissions": ["contextMenus", "tabs", "storage", "sidePanel"],
+  "host_permissions": ["https://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["scripts/content.js"]
+    }
+  ],
+  "side_panel": {
+    "default_path": "sidePanel.html"
+  }
 }
