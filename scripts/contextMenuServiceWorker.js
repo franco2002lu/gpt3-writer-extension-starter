@@ -1,21 +1,21 @@
 //const GITHUB_ORIGIN = 'https://github.com';
 
 
-const sendMessage = (content) => {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        const activeTab = tabs[0].id;
-
-        chrome.tabs.sendMessage(
-            activeTab,
-            { message: "inject", content },
-            (response) => {
-                if (response.status === "failed") {
-                    console.log("injection failed.");
-                }
-            }
-        );
-    });
-};
+// const sendMessage = (content) => {
+//     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//         const activeTab = tabs[0].id;
+//
+//         chrome.tabs.sendMessage(
+//             activeTab,
+//             { message: "inject", content },
+//             (response) => {
+//                 if (response.status === "failed") {
+//                     console.log("injection failed.");
+//                 }
+//             }
+//         );
+//     });
+// };
 
 
 const getKey = () => {
@@ -57,13 +57,18 @@ const generate = async (prompt) => {
 // New function here
 const generateCompletionAction = async (info) => {
     try {
+        await chrome.runtime.sendMessage({name: 'execute', data: {value: 'Generating...'}});
+
         const { selectionText } = info;
         const basePromptPrefix = "summarize the code below:\n";
 
         const baseCompletion = await generate(`${basePromptPrefix}${selectionText}`);
         console.log(baseCompletion.text)
-        //fixme: instead of console log basecompletion.text above, we need to take it and put it in pop up here
-        //displaySidebar(baseCompletion.text);
+        await chrome.runtime.sendMessage({
+            name: 'execute',
+            data: {value: baseCompletion.text.replace(/(\r\n|\n|\r)/gm, "")}
+        });
+
     } catch (error) {
         console.log(error);
     }
@@ -78,7 +83,11 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-// when clicked in the menu it starts executing
-chrome.contextMenus.onClicked.addListener(generateCompletionAction);
 
 //chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch((error) => console.error(error)); //fixme: not sure if works
+// the code above opens side panel when the the popup icon is clicked
+// instead what we want is for it to open when the icon in dropdown menu is clicked
+
+
+// when clicked in the menu it starts executing
+chrome.contextMenus.onClicked.addListener(generateCompletionAction);
